@@ -108,8 +108,8 @@ public class Message {
 		System.out.println("version: " + Utils.toHex(versionb));
 		System.out.println("services: " + Utils.toHex(servicesb));
 		System.out.println("timestamp:" + Utils.toHex(timestampb));
-		System.out.println(Utils.toHex(recipientb));
-		System.out.println(Utils.toHex(senderb));
+		System.out.println("recipient:" + Utils.toHex(recipientb));
+		System.out.println("sender:" + Utils.toHex(senderb));
 		return null;
 
 	}

@@ -68,13 +68,6 @@ public class AddressScript {
 		//boolean compressed = true;
 		//boolean testnet = false;
 
-		ByteBuffer pump_on_buf = null;
-		pump_on_buf.putInt(0);
-		pump_on_buf.putInt(0);
-		pump_on_buf.putShort((short) 21);
-		pump_on_buf.putShort((short) 96);
-		pump_on_buf.putInt(512);
-		byte[] pump_on = pump_on_buf.array();
 		
 		
 		String wif = "5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K";
