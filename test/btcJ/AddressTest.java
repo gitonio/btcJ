@@ -2,6 +2,7 @@ package btcJ;
 
 import static org.junit.Assert.*;
 
+import org.apache.commons.codec.DecoderException;
 import org.junit.Test;
 
 public class AddressTest {
@@ -41,5 +42,11 @@ public class AddressTest {
 		byte[] wif_enc = Address.publicKeyToAddress("045c0de3b9c8ab18dd04e3511243ec2952002dbfadc864b9628910169d9b9b00ec243bcefdd4347074d44bd7356d6a53c495737dd96295e2a9374bf5f02ebfc176");
 		System.out.println(Base58.encode(wif_enc));
 		assertTrue("Should be equal", Base58.encode(wif_enc).equals("1thMirt546nngXqyPEz532S8fLwbozud8"));
+	}
+	
+	@Test
+	public void addrHashToScriptPubKey() throws DecoderException{
+		byte [] spk = Address.addrHashToScriptPubKey("133txdxQmwECTmXqAr9RWNHnzQ175jGb7e");
+		assertEquals( "76a914167c74f7491fe552ce9e1912810a984355b8ee0788ac", Utils.toHex(spk));
 	}
 }

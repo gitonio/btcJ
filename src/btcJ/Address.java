@@ -169,6 +169,7 @@ public class Address {
 				ecp.getSeed());
 
 		ECPrivateKeyParameters privateKey = new ECPrivateKeyParameters(new BigInteger(1,privateKeyBytes), domainParams) ;
+		System.out.println(privateKey.getD());
 		byte[] publicKeyBIBytes = privateKey.getD().toByteArray();
 		ECPoint Q = domainParams.getG().multiply(new BigInteger(publicKeyBIBytes));
 
@@ -244,6 +245,13 @@ public class Address {
 
 		//System.out.println(Utils.toHex(combined));
 		return(combined);
+	}
+
+	public static byte[] addrHashToScriptPubKey(String string) throws DecoderException {
+		// TODO Auto-generated method stub
+	    //return b'76a914' + codecs.encode(utils.base58CheckDecode(b58str),'hex')  + b'88ac'
+
+		return org.apache.commons.codec.binary.Hex.decodeHex (("76a914" + Utils.toHex(Base58Check.decode(string)) + "88ac").toCharArray()) ;
 	}
 
 }

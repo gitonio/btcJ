@@ -1,43 +1,44 @@
 package btcJ;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyFactory;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignatureException;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPrivateKeySpec;
+import java.security.spec.ECPublicKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.ArrayUtils;
+import org.bitcoinj.core.ECKey;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DLSequence;
-import org.bouncycastle.asn1.sec.SECNamedCurves;
-import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.bouncycastle.crypto.params.ECDomainParameters;
-import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.ECPointUtil;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPublicKeySpec;
-import java.security.spec.EllipticCurve;
-import java.security.spec.InvalidKeySpecException;
 
 public class Transaction {
 	
@@ -300,16 +301,18 @@ public class Transaction {
 		
 		
 		Signature           signature = Signature.getInstance("ECDSA", "BC");
+		//signature.
 		System.out.println(pk.toString());
+		
         // generate a signature
         //signature.initSign(keyPair.getPrivate(), Utils.createFixedRandom());
 
-
-        
+        //signature.update(hashtosign);
+       
         // verify a signature
         
         signature.initVerify(pk);
-
+        
         signature.update(hashtosign);
         //byte[]  sigBytes = signature.sign();
 
@@ -321,7 +324,201 @@ public class Transaction {
         {
             System.out.println("signature verification failed.");
         }
+        ECKey e =  ECKey.fromPublicOnly(pkb) ;
+        System.out.println(e.getPublicKeyAsHex());
+		boolean tf = e.verify(hashtosign, sigBytes,  e.getPubKey());
+		System.out.println(tf);
 	}
 
+	public static void verifyTransaction2(String txn) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, SignatureException, InvalidKeyException {
+		String [] parsed = parseTransaction(txn);
+		byte [] signableTxn = getSignableTransaction(parsed);
+		//System.out.println(Utils.toHex(signableTxn));
+		
+		byte[] hash = new byte[256];
+		byte[] hashtosign = new byte[256];
+
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			hash = digest.digest(signableTxn);
+			hashtosign = digest.digest(hash);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+		
+		String derSig = parsed[1].substring(0, parsed[1].length()-2);
+		byte [] pubKeyBytes = new byte[65];
+		byte[] pkb = new byte [65];
+		byte [] sigBytes = null;
+		try {
+			pubKeyBytes = org.apache.commons.codec.binary.Hex.decodeHex(parsed[2].substring(0).toCharArray());
+			sigBytes = org.apache.commons.codec.binary.Hex.decodeHex(derSig.toCharArray());
+			//pubKeyBytes = org.apache.commons.codec.binary.Hex.decodeHex(derSig.substring(2).toCharArray());
+		} catch (DecoderException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		System.out.println("Pub Key   "+Utils.toHex(pubKeyBytes) +"  length:" + pubKeyBytes.length);
+		//System.arraycopy(pubKeyBytes, 0, pkb, 0, pubKeyBytes.length);
+
+        ECKey e =  ECKey.fromPublicOnly(pubKeyBytes) ;
+        System.out.println(e.getPubKeyPoint().getAffineXCoord().toString());
+        System.out.println(e.getPubKeyPoint().getAffineYCoord().toString());
+        System.out.println(Utils.toHex( e.getPubKey()));
+        System.out.println(e.getPubKeyPoint().getAffineXCoord().toBigInteger());
+        System.out.println(e.getPubKeyPoint().getAffineYCoord().toBigInteger());
+		boolean tf = ECKey.verify(hashtosign, sigBytes,  e.getPubKey());
+        if (tf)
+        {
+            System.out.println("signature verification succeeded.");
+        }
+        else
+        {
+            System.out.println("signature verification failed.");
+        }
+	}
+
+	public static String makeRawTransaction(String outputTransactionHash, int sourceIndex,
+			String scriptSig, int satoshis, String outputScript) throws IOException, DecoderException {
+		// TODO Auto-generated method stub
+		StringBuilder sb = new StringBuilder();
+		
+		String fi = "0100000001";
+		sb.append(fi);
+		
+		byte [] ba = org.apache.commons.codec.binary.Hex.decodeHex(outputTransactionHash.toCharArray());
+		ArrayUtils.reverse(ba);
+		sb.append(Utils.toHex(ba));
+		
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		DataOutputStream d = new DataOutputStream(b);
+		d.writeInt(sourceIndex);
+		byte[] result = b.toByteArray();
+		ArrayUtils.reverse(result);
+		sb.append(Utils.toHex(result));
+		
+
+		//System.out.println("length");
+		sb.append(Integer.toHexString(scriptSig.length()/2));
+		ba = org.apache.commons.codec.binary.Hex.decodeHex(scriptSig.toCharArray());
+		sb.append(Utils.toHex(ba));
+		sb.append("ffffffff01");
+
+		
+		
+		
+
+		b = new ByteArrayOutputStream();
+		d = new DataOutputStream(b);
+		d.writeLong(satoshis);
+		result = b.toByteArray();
+		ArrayUtils.reverse(result);
+		//System.out.println(Utils.toHex(result));
+		sb.append(Utils.toHex(result));
+		
+		
+		
+		sb.append(Integer.toHexString(outputScript.length()/2));
+		ba = org.apache.commons.codec.binary.Hex.decodeHex(outputScript.toCharArray());
+		sb.append(Utils.toHex(ba));
+	    sb.append("00000000");
+		
+		//System.out.println(sb);
+		return sb.toString();
+	}
+	 
+	public static String makeSignedTransaction(byte[] privateKey,
+			String outputTransactionHash, int sourceIndex, byte[] scriptPubKey, int satoshis1,
+			byte[] addrHashToScriptPubKey1, int satoshis2, byte[] addrHashToScriptPubKey2) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public static String makeSignedTransaction2(byte[] privateKey,
+			String outputTransactionHash, int sourceIndex, byte[] scriptPubKey,
+			ArrayList<IOPuts> aList) throws DecoderException, IOException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+		// TODO Auto-generated method stub
+	   String  myTxn_forSig = (makeRawTransaction(outputTransactionHash, sourceIndex, Utils.toHex(scriptPubKey), aList.get(0).satoshis, Utils.toHex(aList.get(0).scriptPubKey))
+	            + "01000000"); // # hash code
+
+		byte [] ba = org.apache.commons.codec.binary.Hex.decodeHex(myTxn_forSig.toCharArray());
+   
+	    byte[] hash = new byte[256];
+		byte[] s256 = new byte[256];
+
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			hash = digest.digest(ba);
+			s256 = digest.digest(hash);
+
+		
+		KeyPairGenerator kpg = null;
+			kpg = KeyPairGenerator.getInstance("EC");
+		
+		ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
+		kpg.initialize(gps);
+		KeyPair apair = kpg.generateKeyPair(); 
+		ECPublicKey apub  = (ECPublicKey)apair.getPublic();
+		ECPrivateKey apriv = (ECPrivateKey)apair.getPrivate();
+		
+		ECParameterSpec aspec = apub.getParams();
+		// could serialize aspec for later use (in compatible JRE)
+		//
+		// for test only reuse bogus pubkey, for real substitute values 
+		ECPoint apoint = apub.getW();
+		BigInteger x = apoint.getAffineX(), y = apoint.getAffineY();
+		// construct point plus params to pubkey
+		ECPoint bpoint = new ECPoint (x,y); 
+		
+		ECPublicKeySpec bpubs = new ECPublicKeySpec (bpoint, aspec);
+		KeyFactory kfa = null;
+		kfa = KeyFactory.getInstance ("EC");
+		ECPublicKey bpub = null;
+		ECPrivateKey bpriv = null;
+		bpub = (ECPublicKey) kfa.generatePublic(bpubs);
+		
+		
+		ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
+		
+		bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
+		
+		System.out.println(bpriv.getS());
+		System.out.println(new BigInteger(1,privateKey));
+		//
+		// for test sign with original key, verify with reconstructed key
+		Signature sig = null;
+		sig = Signature.getInstance ("SHA256withECDSA");
+		sig.initSign(bpriv);
+		sig.update (s256);
+		byte[] dsig = null;
+		dsig = sig.sign();
+		System.out.println(Utils.toHex(dsig) + "  length:" + dsig.length);
+		
+        byte [] privateKeyb = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
+
+		byte [] publicKeyb = Address.privateKeyToPublicKey(Utils.toHex(privateKeyb), false);
+		
+		String pkbstring = Utils.toHex(publicKeyb);
+		System.out.println(publicKeyb.length);
+		byte [] publicKeybx = new byte [32];
+		byte [] publicKeyby = new byte [32];
+		System.arraycopy(publicKeyb, 1, publicKeybx, 0, 32);
+		System.arraycopy(publicKeyb, 33, publicKeyby, 0, 32);
+		x = new BigInteger(1, publicKeybx);
+		y = new BigInteger(1, publicKeyby);
+		
+		ECPoint cpoint = new ECPoint (x,y); 
+		ECPublicKeySpec cpubs = new ECPublicKeySpec (cpoint, aspec);
+		ECPublicKey cpub = null;
+		cpub = (ECPublicKey) kfa.generatePublic(cpubs);
+		
+		
+		sig.initVerify(cpub);
+		sig.update(s256);
+		
+		System.out.println (sig.verify(dsig));
+
+		return null;
+	}
 
 }
