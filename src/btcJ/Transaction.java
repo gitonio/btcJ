@@ -459,31 +459,21 @@ public class Transaction {
 		kpg.initialize(gps);
 		KeyPair apair = kpg.generateKeyPair(); 
 		ECPublicKey apub  = (ECPublicKey)apair.getPublic();
-		ECPrivateKey apriv = (ECPrivateKey)apair.getPrivate();
-		
 		ECParameterSpec aspec = apub.getParams();
 		// could serialize aspec for later use (in compatible JRE)
 		//
 		// for test only reuse bogus pubkey, for real substitute values 
-		ECPoint apoint = apub.getW();
-		BigInteger x = apoint.getAffineX(), y = apoint.getAffineY();
-		// construct point plus params to pubkey
-		ECPoint bpoint = new ECPoint (x,y); 
-		
-		ECPublicKeySpec bpubs = new ECPublicKeySpec (bpoint, aspec);
 		KeyFactory kfa = null;
 		kfa = KeyFactory.getInstance ("EC");
-		ECPublicKey bpub = null;
 		ECPrivateKey bpriv = null;
-		bpub = (ECPublicKey) kfa.generatePublic(bpubs);
-		
-		
 		ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
 		
 		bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
 		
-		System.out.println(bpriv.getS());
-		System.out.println(new BigInteger(1,privateKey));
+		bpriv = Address.WIFtoECPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
+		
+		//System.out.println(bpriv.getS());
+		//System.out.println(new BigInteger(1,privateKey));
 		//
 		// for test sign with original key, verify with reconstructed key
 		Signature sig = null;
@@ -492,30 +482,29 @@ public class Transaction {
 		sig.update (s256);
 		byte[] dsig = null;
 		dsig = sig.sign();
+		
 		System.out.println(Utils.toHex(dsig) + "  length:" + dsig.length);
 		
         byte [] privateKeyb = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
 
 		byte [] publicKeyb = Address.privateKeyToPublicKey(Utils.toHex(privateKeyb), false);
 		
-		String pkbstring = Utils.toHex(publicKeyb);
-		System.out.println(publicKeyb.length);
 		byte [] publicKeybx = new byte [32];
 		byte [] publicKeyby = new byte [32];
 		System.arraycopy(publicKeyb, 1, publicKeybx, 0, 32);
 		System.arraycopy(publicKeyb, 33, publicKeyby, 0, 32);
-		x = new BigInteger(1, publicKeybx);
-		y = new BigInteger(1, publicKeyby);
+		BigInteger x = new BigInteger(1, publicKeybx);
+		BigInteger y = new BigInteger(1, publicKeyby);
 		
 		ECPoint cpoint = new ECPoint (x,y); 
 		ECPublicKeySpec cpubs = new ECPublicKeySpec (cpoint, aspec);
 		ECPublicKey cpub = null;
 		cpub = (ECPublicKey) kfa.generatePublic(cpubs);
-		
+		System.out.println(cpub.getFormat());
 		
 		sig.initVerify(cpub);
 		sig.update(s256);
-		
+		System.out.println(sig.getProvider());
 		System.out.println (sig.verify(dsig));
 
 		return null;

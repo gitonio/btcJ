@@ -1,7 +1,18 @@
 package btcJ;
 
 import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPrivateKeySpec;
+import java.security.spec.InvalidKeySpecException;
 
 import org.apache.commons.codec.DecoderException;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
@@ -252,6 +263,29 @@ public class Address {
 	    //return b'76a914' + codecs.encode(utils.base58CheckDecode(b58str),'hex')  + b'88ac'
 
 		return org.apache.commons.codec.binary.Hex.decodeHex (("76a914" + Utils.toHex(Base58Check.decode(string)) + "88ac").toCharArray()) ;
+	}
+	
+	public static ECPrivateKey WIFtoECPrivateKey(String wif) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException{
+        byte [] privateKey = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
+
+		KeyPairGenerator kpg = null;
+		kpg = KeyPairGenerator.getInstance("EC");
+	
+	ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
+	kpg.initialize(gps);
+	KeyPair apair = kpg.generateKeyPair(); 
+	ECPublicKey apub  = (ECPublicKey)apair.getPublic();
+	ECParameterSpec aspec = apub.getParams();
+	// could serialize aspec for later use (in compatible JRE)
+	//
+	// for test only reuse bogus pubkey, for real substitute values 
+	KeyFactory kfa = null;
+	kfa = KeyFactory.getInstance ("EC");
+	ECPrivateKey bpriv = null;
+	ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
+	
+	return bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
+
 	}
 
 }
