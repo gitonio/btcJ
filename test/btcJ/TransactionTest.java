@@ -119,6 +119,9 @@ public class TransactionTest {
 	
 	@Test
 	public void makeRawTransaction() throws IOException, DecoderException{
+        ArrayList<IOPuts> aList = new ArrayList<IOPuts>();
+        aList.add(new IOPuts(99900000, Address.addrHashToScriptPubKey("1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa") ));
+        aList.add(new IOPuts(2000,  Address.addrHashToScriptPubKey("15nhZbXnLMknZACbb3Jrf1wPCD9DWAcqd7") ));
         String txn = Transaction.makeRawTransaction(
                 "f2b3eb2deb76566e7324307cd47c35eeb88413f971d88519859b1834307ecfec", //# output transaction hash
                 1, //# sourceIndex
@@ -136,34 +139,45 @@ public class TransactionTest {
 	}
 	
 	@Test
-	public void makeSignedTransaction() throws DecoderException {
-        byte [] privateKey = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
+	public void makeRawTransaction2() throws IOException, DecoderException{
+		String outputTransactionHash = "76a914097072524438d003d23a2f23edb65aae1bb3e46988ac";
+        ArrayList<IOPuts> outputs = new ArrayList<IOPuts>();
+        outputs.add(new IOPuts(99900000, org.apache.commons.codec.binary.Hex.decodeHex(outputTransactionHash.toCharArray())));
+ 
+        String txn = Transaction.makeRawTransaction2(
+                "f2b3eb2deb76566e7324307cd47c35eeb88413f971d88519859b1834307ecfec", //# output transaction hash
+                1, //# sourceIndex
+                "76a914010966776006953d5567439e5e39f86a0d273bee88ac",// # scriptSig
+                outputs
+                ) + "01000000" ;//# hash code type
+        assertEquals(
+                "0100000001eccf7e3034189b851985d871f91384b8ee357cd47c3024736e5676eb2debb3f2" +
+                "010000001976a914010966776006953d5567439e5e39f86a0d273bee88acffffffff" +
+                "01605af405000000001976a914097072524438d003d23a2f23edb65aae1bb3e46988ac" +
+                "0000000001000000",txn);
 
-       String  signed_txn = Transaction.makeSignedTransaction(privateKey,
-            "c39e394d41e6be2ea58c2d3a78b8c644db34aeff865215c633fe6937933078a9", //# output (prev) transaction hash
-            0, //# sourceIndex
-            Address.addrHashToScriptPubKey("133txdxQmwECTmXqAr9RWNHnzQ175jGb7e"),
-            24321, //#satoshis
-            Address.addrHashToScriptPubKey("1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa"),
-            2000, 
-            Address.addrHashToScriptPubKey("15nhZbXnLMknZACbb3Jrf1wPCD9DWAcqd7")
-            );
+
 	}
+
+	
 	
 	@Test
-	public void makeSignedTransaction2() throws DecoderException, IOException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException {
+	public void makeSignedTransaction() throws DecoderException, IOException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, SignatureException, NoSuchProviderException {
         byte [] privateKey = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
         
         ArrayList<IOPuts> aList = new ArrayList<IOPuts>();
         aList.add(new IOPuts(24321, Address.addrHashToScriptPubKey("1KKKK6N21XKo48zWKuQKXdvSsCf95ibHFa") ));
         aList.add(new IOPuts(2000,  Address.addrHashToScriptPubKey("15nhZbXnLMknZACbb3Jrf1wPCD9DWAcqd7") ));
         		
-       String  signed_txn = Transaction.makeSignedTransaction2(privateKey,
+       String  signed_txn = Transaction.makeSignedTransaction(privateKey,
             "c39e394d41e6be2ea58c2d3a78b8c644db34aeff865215c633fe6937933078a9", //# output (prev) transaction hash
             0, //# sourceIndex
             Address.addrHashToScriptPubKey("133txdxQmwECTmXqAr9RWNHnzQ175jGb7e"),
             aList
     		   );
+       System.out.println("signed_txn:" + signed_txn);
+		Transaction.verifyTransaction(signed_txn);
+
 	}
 
 }

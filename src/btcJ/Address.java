@@ -12,6 +12,7 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPrivateKeySpec;
+import java.security.spec.ECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 
 import org.apache.commons.codec.DecoderException;
@@ -172,7 +173,7 @@ public class Address {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 
 		X9ECParameters ecp = SECNamedCurves.getByName("secp256k1");
 		ECDomainParameters domainParams = new ECDomainParameters(ecp.getCurve(),
@@ -260,32 +261,77 @@ public class Address {
 
 	public static byte[] addrHashToScriptPubKey(String string) throws DecoderException {
 		// TODO Auto-generated method stub
-	    //return b'76a914' + codecs.encode(utils.base58CheckDecode(b58str),'hex')  + b'88ac'
+		//return b'76a914' + codecs.encode(utils.base58CheckDecode(b58str),'hex')  + b'88ac'
 
 		return org.apache.commons.codec.binary.Hex.decodeHex (("76a914" + Utils.toHex(Base58Check.decode(string)) + "88ac").toCharArray()) ;
 	}
 	
-	public static ECPrivateKey WIFtoECPrivateKey(String wif) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException{
-        byte [] privateKey = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
 
-		KeyPairGenerator kpg = null;
-		kpg = KeyPairGenerator.getInstance("EC");
-	
-	ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
-	kpg.initialize(gps);
-	KeyPair apair = kpg.generateKeyPair(); 
-	ECPublicKey apub  = (ECPublicKey)apair.getPublic();
-	ECParameterSpec aspec = apub.getParams();
-	// could serialize aspec for later use (in compatible JRE)
-	//
-	// for test only reuse bogus pubkey, for real substitute values 
-	KeyFactory kfa = null;
-	kfa = KeyFactory.getInstance ("EC");
-	ECPrivateKey bpriv = null;
-	ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
-	
-	return bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
+	public static ECPrivateKey WIFtoECPrivateKey(String wif) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException{
+		//byte [] privateKey = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
+		byte [] privateKey = Address.wifToPrivateKey(wif);
+		return PrivateKeytoECPrivateKey(privateKey);
+
 
 	}
+	
+	public static ECPrivateKey PrivateKeytoECPrivateKey(byte [] privateKey)throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException{
+		KeyPairGenerator kpg = null;
+		kpg = KeyPairGenerator.getInstance("EC");
+
+		ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
+		kpg.initialize(gps);
+		KeyPair apair = kpg.generateKeyPair(); 
+		ECPublicKey apub  = (ECPublicKey)apair.getPublic();
+		ECParameterSpec aspec = apub.getParams();
+		// could serialize aspec for later use (in compatible JRE)
+		//
+		// for test only reuse bogus pubkey, for real substitute values 
+		KeyFactory kfa = null;
+		kfa = KeyFactory.getInstance ("EC");
+		ECPrivateKey bpriv = null;
+		ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
+
+		return bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
+		
+	}
+	
+	public static ECPublicKey WIFtoECPublicKey(String wif) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException {
+		byte [] privateKey = Address.wifToPrivateKey(wif);
+		
+		return PrivateKeytoECPublicKey(privateKey);
+
+	}
+	
+	public static ECPublicKey PrivateKeytoECPublicKey(byte [] privateKey) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException{
+		KeyPairGenerator kpg = null;
+		kpg = KeyPairGenerator.getInstance("EC");
+
+		ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
+		kpg.initialize(gps);
+		KeyPair apair = kpg.generateKeyPair(); 
+		ECPublicKey apub  = (ECPublicKey)apair.getPublic();
+		ECParameterSpec aspec = apub.getParams();
+		
+		
+		byte [] publicKeyb = Address.privateKeyToPublicKey(Utils.toHex(privateKey), false);
+		
+		byte [] publicKeybx = new byte [32];
+		byte [] publicKeyby = new byte [32];
+		System.arraycopy(publicKeyb, 1, publicKeybx, 0, 32);
+		System.arraycopy(publicKeyb, 33, publicKeyby, 0, 32);
+		BigInteger x = new BigInteger(1, publicKeybx);
+		BigInteger y = new BigInteger(1, publicKeyby);
+		
+		java.security.spec.ECPoint cpoint = new java.security.spec.ECPoint (x,y); 
+		ECPublicKeySpec cpubs = new ECPublicKeySpec (cpoint, aspec);
+		ECPublicKey cpub = null;
+		KeyFactory kfa = null;
+		kfa = KeyFactory.getInstance ("EC");
+		return cpub = (ECPublicKey) kfa.generatePublic(cpubs);
+
+	}
+	
+	
 
 }

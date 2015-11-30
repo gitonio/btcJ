@@ -56,6 +56,7 @@ public class AddressScript {
 		
 		
 		String wif = "5JG9hT3beGTJuUAmCQEmNaxAuMacCTfXuw1R3FCXig23RQHMr4K";
+		wif = "5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu";
 		boolean compressed = false;
 		boolean testnet = false;
 		

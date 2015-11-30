@@ -7,7 +7,6 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 import org.bitcoinj.core.*;
-import org.bitcoinj.core.Address;
 import org.bitcoinj.params.MainNetParams;
 
 public class AddressScriptJ {

@@ -25,6 +25,7 @@ import java.security.spec.ECPrivateKeySpec;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -41,122 +42,122 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 
 public class Transaction {
-	
-	
-    public static byte [] decodeFromDER(byte[] bytes) {
-        ASN1InputStream decoder = null;
-        try {
-            decoder = new ASN1InputStream(bytes);
 
-            DLSequence seq = (DLSequence) decoder.readObject();
-            if (seq == null)
-                throw new RuntimeException("Reached past end of ASN.1 stream.");
-            ASN1Integer r, s;
-            try {
-                r = (ASN1Integer) seq.getObjectAt(0);
-                s = (ASN1Integer) seq.getObjectAt(1);
-                
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException(e);
-            }
-            
-            System.out.println("r:  "+Utils.toHex(r.getEncoded()));
-            System.out.println("s:  "+Utils.toHex(s.getEncoded()));
-            System.out.println("r:  "+r.getPositiveValue());
-            System.out.println("s:  "+s.getPositiveValue());
-            //byte[] x = new byte[r.getEncoded().length -2];
-            //byte[] y = new byte[s.getEncoded().length - 2];
-            byte[] x = new byte[36];
-            byte[] y = new byte[34];
-            byte[] xy = new byte[x.length + y.length];
-            System.arraycopy(r.getEncoded(), 2, x, 4, r.getEncoded().length -2);
-            System.arraycopy(s.getEncoded(), 2, y, 2, s.getEncoded().length - 2);
-            System.arraycopy(x, 0, xy, 0, x.length);
-            System.arraycopy(y, 0, xy, x.length  , y.length);
-            System.out.println("xy    "+ Utils.toHex(xy));
-           return xy;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (decoder != null)
-                try { decoder.close(); } catch (IOException x) {}
-        }
-    }
 
-    public static String decodeFromDER(String string) {
-        ASN1InputStream decoder = null;
-        try {
-        	byte [] bytes = null;
-        	try {
-        		bytes = org.apache.commons.codec.binary.Hex.decodeHex( string.toCharArray() ) ;
-        	} catch (DecoderException e1) {
-        		// TODO Auto-generated catch block
-        		e1.printStackTrace();
-        	}
-           decoder = new ASN1InputStream(bytes);
+	public static byte [] decodeFromDER(byte[] bytes) {
+		ASN1InputStream decoder = null;
+		try {
+			decoder = new ASN1InputStream(bytes);
 
-            DLSequence seq = (DLSequence) decoder.readObject();
-            if (seq == null)
-                throw new RuntimeException("Reached past end of ASN.1 stream.");
-            ASN1Integer r, s;
-            try {
-                r = (ASN1Integer) seq.getObjectAt(0);
-                s = (ASN1Integer) seq.getObjectAt(1);
-                
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException(e);
-            }
-            // OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
-            // Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
-             
-            //System.out.println(Utils.toHex(r.getEncoded()));
-            //System.out.println(Utils.toHex(s.getEncoded()));
-            Base64.encodeInteger(r.getValue());
-            Base64.encodeInteger(s.getPositiveValue());
-    		
+			DLSequence seq = (DLSequence) decoder.readObject();
+			if (seq == null)
+				throw new RuntimeException("Reached past end of ASN.1 stream.");
+			ASN1Integer r, s;
+			try {
+				r = (ASN1Integer) seq.getObjectAt(0);
+				s = (ASN1Integer) seq.getObjectAt(1);
 
-            
-            
-            
-            byte[] x = new byte[r.getEncoded().length-2 ];
-            byte[] y = new byte[s.getEncoded().length -3];
-            byte[] xy = new byte[x.length + y.length];
-            
-            System.arraycopy(r.getEncoded(), 2, x, 0, r.getEncoded().length-2 );
-            System.out.println("x:"+Utils.toHex(x));
-            System.arraycopy(s.getEncoded(), 3, y, 0, s.getEncoded().length-3 );
-            //System.out.println("y:"+Utils.toHex(y));
-            System.arraycopy(x, 0, xy, 0, x.length);
-            System.arraycopy(y, 0, xy, x.length  , y.length);
-            System.out.println("xy    "+ Utils.toHex(xy));
-            return Utils.toHex(xy);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } finally {
-            if (decoder != null)
-                try { decoder.close(); } catch (IOException x) {}
-        }
-    }
-	
-	
-	
-	
+			} catch (ClassCastException e) {
+				throw new IllegalArgumentException(e);
+			}
+
+			System.out.println("r:  "+Utils.toHex(r.getEncoded()));
+			System.out.println("s:  "+Utils.toHex(s.getEncoded()));
+			System.out.println("r:  "+r.getPositiveValue());
+			System.out.println("s:  "+s.getPositiveValue());
+			//byte[] x = new byte[r.getEncoded().length -2];
+			//byte[] y = new byte[s.getEncoded().length - 2];
+			byte[] x = new byte[36];
+			byte[] y = new byte[34];
+			byte[] xy = new byte[x.length + y.length];
+			System.arraycopy(r.getEncoded(), 2, x, 4, r.getEncoded().length -2);
+			System.arraycopy(s.getEncoded(), 2, y, 2, s.getEncoded().length - 2);
+			System.arraycopy(x, 0, xy, 0, x.length);
+			System.arraycopy(y, 0, xy, x.length  , y.length);
+			System.out.println("xy    "+ Utils.toHex(xy));
+			return xy;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (decoder != null)
+				try { decoder.close(); } catch (IOException x) {}
+		}
+	}
+
+	public static String decodeFromDER(String string) {
+		ASN1InputStream decoder = null;
+		try {
+			byte [] bytes = null;
+			try {
+				bytes = org.apache.commons.codec.binary.Hex.decodeHex( string.toCharArray() ) ;
+			} catch (DecoderException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			decoder = new ASN1InputStream(bytes);
+
+			DLSequence seq = (DLSequence) decoder.readObject();
+			if (seq == null)
+				throw new RuntimeException("Reached past end of ASN.1 stream.");
+			ASN1Integer r, s;
+			try {
+				r = (ASN1Integer) seq.getObjectAt(0);
+				s = (ASN1Integer) seq.getObjectAt(1);
+
+			} catch (ClassCastException e) {
+				throw new IllegalArgumentException(e);
+			}
+			// OpenSSL deviates from the DER spec by interpreting these values as unsigned, though they should not be
+			// Thus, we always use the positive versions. See: http://r6.ca/blog/20111119T211504Z.html
+
+			//System.out.println(Utils.toHex(r.getEncoded()));
+			//System.out.println(Utils.toHex(s.getEncoded()));
+			Base64.encodeInteger(r.getValue());
+			Base64.encodeInteger(s.getPositiveValue());
+
+
+
+
+
+			byte[] x = new byte[r.getEncoded().length-2 ];
+			byte[] y = new byte[s.getEncoded().length -3];
+			byte[] xy = new byte[x.length + y.length];
+
+			System.arraycopy(r.getEncoded(), 2, x, 0, r.getEncoded().length-2 );
+			System.out.println("x:"+Utils.toHex(x));
+			System.arraycopy(s.getEncoded(), 3, y, 0, s.getEncoded().length-3 );
+			//System.out.println("y:"+Utils.toHex(y));
+			System.arraycopy(x, 0, xy, 0, x.length);
+			System.arraycopy(y, 0, xy, x.length  , y.length);
+			System.out.println("xy    "+ Utils.toHex(xy));
+			return Utils.toHex(xy);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} finally {
+			if (decoder != null)
+				try { decoder.close(); } catch (IOException x) {}
+		}
+	}
+
+
+
+
 	public static String [] parseTransaction(String txn) {
 		// TODO Auto-generated method stub
 
 		byte [] outbytes = new byte [2];
-/*	    first = txn[0:41*2]
+		/*	    first = txn[0:41*2]
 	    	    scriptLen = int(txn[41*2:42*2], 16)
 	    	    script = txn[42*2:42*2+2*scriptLen]
 	    	    sigLen = int(script[0:2], 16)
 	    	    sig = script[2:2+sigLen*2]
 	    	    pubLen = int(script[2+sigLen*2:2+sigLen*2+2], 16)
 	    	    pub = script[2+sigLen*2+2:]
-	    	            
+
 	    	    assert(len(pub) == pubLen*2)
 	    	    rest = txn[42*2+2*scriptLen:]
 	    	    return [first, sig, pub, rest]         
-*/
+		 */
 		String first = txn.substring(0, 41*2);
 		int scriptlen = Integer.parseInt(txn.substring(41*2, 42*2),16);
 		String script = txn.substring(42*2, 42*2+ 2*scriptlen);
@@ -165,15 +166,15 @@ public class Transaction {
 		int publen = Integer.parseInt(script.substring(2+siglen*2, 2+siglen*2+2), 16);
 		String pub = script.substring(2+siglen*2+2);
 		String rest = txn.substring(42*2+2*scriptlen);
-		
+
 		String[] parsed = new String[] {first,sig,pub,rest} ;
-		
+
 		return parsed;
 	}
 
 	public static byte[] getSignableTransaction(String[] parsed) {
 		// TODO Auto-generated method stub
-/*	    first, sig, pub, rest = parsed
+		/*	    first, sig, pub, rest = parsed
 	    	    #inputAddr = utils.base58CheckDecode(keyUtils.pubKeyToAddr(pub.decode()))
 	    	    print('first: ', first, 'sig: ', sig, 'pub: ', pub, 'rest: ', rest)
 	    	    #if (compressed=='yes'):
@@ -182,7 +183,7 @@ public class Transaction {
 	    	    #else:
 	    	    #    inputAddr = codecs.encode(utils.base58CheckDecode(keyUtils.pubKeyToAddr(pub)),'hex').decode()
 	    	    inputAddr = codecs.encode(utils.base58CheckDecode(keyUtils.pubKeyToAddr(pub)),'hex').decode()
-	    	    
+
 	    	    #inputAddr = codecs.encode(utils.base58CheckDecode('moyDyvi7VeAhZnGEWtvE62PoDdmoRXRRkf'),'hex').decode()
 	    	    print('pub uncompressed: ', keyUtils.pubKeyToAddr(pub,net='test'))
 	    	    print('pub   compressed: ', keyUtils.pubKeyToAddr('03' + pub[2:66],net='test'))
@@ -194,34 +195,34 @@ public class Transaction {
 	    	    #print(codecs.encode(inputAddr,'hex').decode())
 	    	    #return first + "1976a914" + inputAddr.encode('hex') + "88ac" + rest + "01000000"
 	    	    return first.encode('utf-8') + b"1976a914" + inputAddr.encode('utf-8') + b"88ac" + rest.encode('utf-8') + b"01000000"
-*/	
-	String first = 	parsed[0];
-	String sig = 	parsed[1];
-	String pub = 	parsed[2];
-	String rest = 	parsed[3];
-	//System.out.println("address" + Base58Check.decode( Address.publicKeyToAddress(pub) ));
-	String inputAddr = Base58.encode(Address.publicKeyToAddress(pub));
-	//System.out.println("1addr " + inputAddr);
-	byte[] inputAddr2 = Base58Check.decode(inputAddr);
-	inputAddr = Utils.toHex(inputAddr2);
-	//System.out.println("2addr " + inputAddr);
-	String inp = first + "1976a914" + inputAddr + "88ac" + rest + "01000000";
-	byte [] rv = null;
-	try {
-		rv = org.apache.commons.codec.binary.Hex.decodeHex( inp.toCharArray() ) ;
-	} catch (DecoderException e1) {
-		// TODO Auto-generated catch block
-		e1.printStackTrace();
-	}
+		 */	
+		String first = 	parsed[0];
+		String sig = 	parsed[1];
+		String pub = 	parsed[2];
+		String rest = 	parsed[3];
+		//System.out.println("address" + Base58Check.decode( Address.publicKeyToAddress(pub) ));
+		String inputAddr = Base58.encode(Address.publicKeyToAddress(pub));
+		//System.out.println("1addr " + inputAddr);
+		byte[] inputAddr2 = Base58Check.decode(inputAddr);
+		inputAddr = Utils.toHex(inputAddr2);
+		//System.out.println("2addr " + inputAddr);
+		String inp = first + "1976a914" + inputAddr + "88ac" + rest + "01000000";
+		byte [] rv = null;
+		try {
+			rv = org.apache.commons.codec.binary.Hex.decodeHex( inp.toCharArray() ) ;
+		} catch (DecoderException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 
-	
-	return rv;	
-	
+
+		return rv;	
+
 	}
 
 	public static void verifyTransaction(String txn) throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException, SignatureException, InvalidKeyException {
 		// TODO Auto-generated method stub
-/*	    print('txn:', txn)            
+		/*	    print('txn:', txn)            
 	    parsed = parseTxn(txn)     
 	    print('parsed: ', parsed) 
 	    compressed=compressed
@@ -240,11 +241,11 @@ public class Transaction {
 	    vk = ecdsa.VerifyingKey.from_string(codecs.decode(public_key[2:].encode('utf-8'),'hex'), curve=ecdsa.SECP256k1)
 	    #print(vk.verify_digest(codecs.decode(sig.encode('utf-8'),'hex'), hashToSign ))
 	    assert(vk.verify_digest(codecs.decode(sig.encode('utf-8'),'hex'), hashToSign ))
-*/	
+		 */	
 		String [] parsed = parseTransaction(txn);
 		byte [] signableTxn = getSignableTransaction(parsed);
 		//System.out.println(Utils.toHex(signableTxn));
-		
+
 		String myTxn_forSig = ("0100000001a97830933769fe33c6155286ffae34db44c6b8783a2d8ca52ebee6414d399ec300000000" +
 				"1976a914" + "167c74f7491fe552ce9e1912810a984355b8ee07" + "88ac" +
 				"ffffffff02015f0000000000001976a914c8e90996c7c6080ee06284600c684ed904d14c5c88ac204e000000000000" +
@@ -284,48 +285,48 @@ public class Transaction {
 			e1.printStackTrace();
 		}
 		sig = decodeFromDER(sigBytes);
-		
+
 		System.out.println("Sigder        " + Utils.toHex(sigBytes) +"  length:" + sigBytes.length);
 		System.out.println("Sig           " + Utils.toHex(sig) +"  length:" + sig.length);
 		System.out.println("Pub Key   "+Utils.toHex(pubKeyBytes) +"  length:" + pubKeyBytes.length);
 		System.arraycopy(pubKeyBytes, 0, pkb, 0, pubKeyBytes.length);
 		System.out.println("Pub Key   "+Utils.toHex(pkb) +"  length:" + pkb.length);
 		//KeyPair pair = GenerateKeys();
-		
-	    ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
-	    KeyFactory kf = KeyFactory.getInstance("ECDSA", new BouncyCastleProvider());
-	    ECNamedCurveSpec params = new ECNamedCurveSpec("secp256k1", spec.getCurve(), spec.getG(), spec.getN());
-	    ECPoint point =  ECPointUtil.decodePoint(params.getCurve(), pkb);
-	    ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
-	    ECPublicKey pk = (ECPublicKey) kf.generatePublic(pubKeySpec);
-		
-		
+
+		ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
+		KeyFactory kf = KeyFactory.getInstance("ECDSA", new BouncyCastleProvider());
+		ECNamedCurveSpec params = new ECNamedCurveSpec("secp256k1", spec.getCurve(), spec.getG(), spec.getN());
+		ECPoint point =  ECPointUtil.decodePoint(params.getCurve(), pkb);
+		ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
+		ECPublicKey pk = (ECPublicKey) kf.generatePublic(pubKeySpec);
+
+
 		Signature           signature = Signature.getInstance("ECDSA", "BC");
 		//signature.
 		System.out.println(pk.toString());
-		
-        // generate a signature
-        //signature.initSign(keyPair.getPrivate(), Utils.createFixedRandom());
 
-        //signature.update(hashtosign);
-       
-        // verify a signature
-        
-        signature.initVerify(pk);
-        
-        signature.update(hashtosign);
-        //byte[]  sigBytes = signature.sign();
+		// generate a signature
+		//signature.initSign(keyPair.getPrivate(), Utils.createFixedRandom());
 
-        if (signature.verify((sigBytes)))
-        {
-            System.out.println("signature verification succeeded.");
-        }
-        else
-        {
-            System.out.println("signature verification failed.");
-        }
-        ECKey e =  ECKey.fromPublicOnly(pkb) ;
-        System.out.println(e.getPublicKeyAsHex());
+		//signature.update(hashtosign);
+
+		// verify a signature
+
+		signature.initVerify(pk);
+
+		signature.update(hashtosign);
+		//byte[]  sigBytes = signature.sign();
+
+		if (signature.verify((sigBytes)))
+		{
+			System.out.println("signature verification succeeded.");
+		}
+		else
+		{
+			System.out.println("signature verification failed.");
+		}
+		ECKey e =  ECKey.fromPublicOnly(pkb) ;
+		System.out.println(e.getPublicKeyAsHex());
 		boolean tf = e.verify(hashtosign, sigBytes,  e.getPubKey());
 		System.out.println(tf);
 	}
@@ -334,7 +335,7 @@ public class Transaction {
 		String [] parsed = parseTransaction(txn);
 		byte [] signableTxn = getSignableTransaction(parsed);
 		//System.out.println(Utils.toHex(signableTxn));
-		
+
 		byte[] hash = new byte[256];
 		byte[] hashtosign = new byte[256];
 
@@ -345,7 +346,7 @@ public class Transaction {
 		} catch (Exception e) {
 			// TODO: handle exception
 		}
-		
+
 		String derSig = parsed[1].substring(0, parsed[1].length()-2);
 		byte [] pubKeyBytes = new byte[65];
 		byte[] pkb = new byte [65];
@@ -358,46 +359,46 @@ public class Transaction {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
+
 		System.out.println("Pub Key   "+Utils.toHex(pubKeyBytes) +"  length:" + pubKeyBytes.length);
 		//System.arraycopy(pubKeyBytes, 0, pkb, 0, pubKeyBytes.length);
 
-        ECKey e =  ECKey.fromPublicOnly(pubKeyBytes) ;
-        System.out.println(e.getPubKeyPoint().getAffineXCoord().toString());
-        System.out.println(e.getPubKeyPoint().getAffineYCoord().toString());
-        System.out.println(Utils.toHex( e.getPubKey()));
-        System.out.println(e.getPubKeyPoint().getAffineXCoord().toBigInteger());
-        System.out.println(e.getPubKeyPoint().getAffineYCoord().toBigInteger());
+		ECKey e =  ECKey.fromPublicOnly(pubKeyBytes) ;
+		System.out.println(e.getPubKeyPoint().getAffineXCoord().toString());
+		System.out.println(e.getPubKeyPoint().getAffineYCoord().toString());
+		System.out.println(Utils.toHex( e.getPubKey()));
+		System.out.println(e.getPubKeyPoint().getAffineXCoord().toBigInteger());
+		System.out.println(e.getPubKeyPoint().getAffineYCoord().toBigInteger());
 		boolean tf = ECKey.verify(hashtosign, sigBytes,  e.getPubKey());
-        if (tf)
-        {
-            System.out.println("signature verification succeeded.");
-        }
-        else
-        {
-            System.out.println("signature verification failed.");
-        }
+		if (tf)
+		{
+			System.out.println("signature verification succeeded.");
+		}
+		else
+		{
+			System.out.println("signature verification failed.");
+		}
 	}
 
 	public static String makeRawTransaction(String outputTransactionHash, int sourceIndex,
 			String scriptSig, int satoshis, String outputScript) throws IOException, DecoderException {
 		// TODO Auto-generated method stub
 		StringBuilder sb = new StringBuilder();
-		
+
 		String fi = "0100000001";
 		sb.append(fi);
-		
+
 		byte [] ba = org.apache.commons.codec.binary.Hex.decodeHex(outputTransactionHash.toCharArray());
 		ArrayUtils.reverse(ba);
 		sb.append(Utils.toHex(ba));
-		
+
 		ByteArrayOutputStream b = new ByteArrayOutputStream();
 		DataOutputStream d = new DataOutputStream(b);
 		d.writeInt(sourceIndex);
 		byte[] result = b.toByteArray();
 		ArrayUtils.reverse(result);
 		sb.append(Utils.toHex(result));
-		
+
 
 		//System.out.println("length");
 		sb.append(Integer.toHexString(scriptSig.length()/2));
@@ -405,9 +406,9 @@ public class Transaction {
 		sb.append(Utils.toHex(ba));
 		sb.append("ffffffff01");
 
-		
-		
-		
+
+
+
 
 		b = new ByteArrayOutputStream();
 		d = new DataOutputStream(b);
@@ -416,62 +417,98 @@ public class Transaction {
 		ArrayUtils.reverse(result);
 		//System.out.println(Utils.toHex(result));
 		sb.append(Utils.toHex(result));
-		
-		
-		
+
+
+
 		sb.append(Integer.toHexString(outputScript.length()/2));
 		ba = org.apache.commons.codec.binary.Hex.decodeHex(outputScript.toCharArray());
 		sb.append(Utils.toHex(ba));
-	    sb.append("00000000");
 		
+		
+		sb.append("00000000");
+
 		//System.out.println(sb);
 		return sb.toString();
 	}
-	 
-	public static String makeSignedTransaction(byte[] privateKey,
-			String outputTransactionHash, int sourceIndex, byte[] scriptPubKey, int satoshis1,
-			byte[] addrHashToScriptPubKey1, int satoshis2, byte[] addrHashToScriptPubKey2) {
+	
+	
+	public static String makeRawTransaction2(String outputTransactionHash, int sourceIndex,
+			String scriptSig,  ArrayList<IOPuts> outputs) throws IOException, DecoderException {
 		// TODO Auto-generated method stub
-		return null;
+		// TODO Auto-generated method stub
+		StringBuilder sb = new StringBuilder();
+
+		String fi = "0100000001";
+		sb.append(fi);
+
+		byte [] ba = org.apache.commons.codec.binary.Hex.decodeHex(outputTransactionHash.toCharArray());
+		ArrayUtils.reverse(ba);
+		sb.append(Utils.toHex(ba));
+
+		ByteArrayOutputStream b = new ByteArrayOutputStream();
+		DataOutputStream d = new DataOutputStream(b);
+		d.writeInt(sourceIndex);
+		byte[] result = b.toByteArray();
+		ArrayUtils.reverse(result);
+		sb.append(Utils.toHex(result));
+
+
+		//System.out.println("length");
+		sb.append(Integer.toHexString(scriptSig.length()/2));
+		ba = org.apache.commons.codec.binary.Hex.decodeHex(scriptSig.toCharArray());
+		sb.append(Utils.toHex(ba));
+		sb.append("ffffffff");
+		//Number of outputs
+		sb.append(String.format("%02X", outputs.size()));
+
+		for (Iterator iterator = outputs.iterator(); iterator.hasNext();) {
+			IOPuts ioPuts = (IOPuts) iterator.next();
+			
+		
+		
+
+
+		b = new ByteArrayOutputStream();
+		d = new DataOutputStream(b);
+		d.writeLong(ioPuts.satoshis);
+		result = b.toByteArray();
+		ArrayUtils.reverse(result);
+		//System.out.println(Utils.toHex(result));
+		sb.append(Utils.toHex(result));
+
+
+
+		sb.append(Integer.toHexString(Utils.toHex(ioPuts.scriptPubKey).length()/2));
+		//ba = org.apache.commons.codec.binary.Hex.decodeHex(outputScript.toCharArray());
+		sb.append(Utils.toHex(ioPuts.scriptPubKey));
+	}
+		
+		sb.append("00000000");
+
+		//System.out.println(sb);
+		return sb.toString();
 	}
 
-	public static String makeSignedTransaction2(byte[] privateKey,
-			String outputTransactionHash, int sourceIndex, byte[] scriptPubKey,
-			ArrayList<IOPuts> aList) throws DecoderException, IOException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
-		// TODO Auto-generated method stub
-	   String  myTxn_forSig = (makeRawTransaction(outputTransactionHash, sourceIndex, Utils.toHex(scriptPubKey), aList.get(0).satoshis, Utils.toHex(aList.get(0).scriptPubKey))
-	            + "01000000"); // # hash code
 
-		byte [] ba = org.apache.commons.codec.binary.Hex.decodeHex(myTxn_forSig.toCharArray());
-   
-	    byte[] hash = new byte[256];
+	public static String makeSignedTransaction(byte[] privateKey,
+			String outputTransactionHash, int sourceIndex, byte[] scriptPubKey,
+			ArrayList<IOPuts> outputs) throws DecoderException, IOException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, InvalidKeySpecException, InvalidKeyException, SignatureException {
+		// TODO Auto-generated method stub
+		String  myTxn_forSig = (makeRawTransaction2(outputTransactionHash, sourceIndex, Utils.toHex(scriptPubKey), outputs)
+				+ "01000000"); // # hash code
+
+		byte [] myTxn_forSig_ba = org.apache.commons.codec.binary.Hex.decodeHex(myTxn_forSig.toCharArray());
+
+		byte[] hash = new byte[256];
 		byte[] s256 = new byte[256];
 
-			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			hash = digest.digest(ba);
-			s256 = digest.digest(hash);
+		MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		hash = digest.digest(myTxn_forSig_ba);
+		s256 = digest.digest(hash);
 
-		
-		KeyPairGenerator kpg = null;
-			kpg = KeyPairGenerator.getInstance("EC");
-		
-		ECGenParameterSpec gps = new ECGenParameterSpec ("secp256k1"); // NIST P-256 
-		kpg.initialize(gps);
-		KeyPair apair = kpg.generateKeyPair(); 
-		ECPublicKey apub  = (ECPublicKey)apair.getPublic();
-		ECParameterSpec aspec = apub.getParams();
-		// could serialize aspec for later use (in compatible JRE)
-		//
-		// for test only reuse bogus pubkey, for real substitute values 
-		KeyFactory kfa = null;
-		kfa = KeyFactory.getInstance ("EC");
-		ECPrivateKey bpriv = null;
-		ECPrivateKeySpec pkeys = new ECPrivateKeySpec(new BigInteger(1,privateKey), aspec);
-		
-		bpriv = (ECPrivateKey) kfa.generatePrivate(pkeys);
-		
-		bpriv = Address.WIFtoECPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
-		
+
+
+		ECPrivateKey bpriv = Address.PrivateKeytoECPrivateKey(privateKey);
 		//System.out.println(bpriv.getS());
 		//System.out.println(new BigInteger(1,privateKey));
 		//
@@ -482,32 +519,31 @@ public class Transaction {
 		sig.update (s256);
 		byte[] dsig = null;
 		dsig = sig.sign();
-		
+		//System.out.println(sig.hashCode());
 		System.out.println(Utils.toHex(dsig) + "  length:" + dsig.length);
-		
-        byte [] privateKeyb = Address.wifToPrivateKey("5Kb6aGpijtrb8X28GzmWtbcGZCG8jHQWFJcWugqo3MwKRvC8zyu");
 
-		byte [] publicKeyb = Address.privateKeyToPublicKey(Utils.toHex(privateKeyb), false);
-		
-		byte [] publicKeybx = new byte [32];
-		byte [] publicKeyby = new byte [32];
-		System.arraycopy(publicKeyb, 1, publicKeybx, 0, 32);
-		System.arraycopy(publicKeyb, 33, publicKeyby, 0, 32);
-		BigInteger x = new BigInteger(1, publicKeybx);
-		BigInteger y = new BigInteger(1, publicKeyby);
-		
-		ECPoint cpoint = new ECPoint (x,y); 
-		ECPublicKeySpec cpubs = new ECPublicKeySpec (cpoint, aspec);
-		ECPublicKey cpub = null;
-		cpub = (ECPublicKey) kfa.generatePublic(cpubs);
+		ECPublicKey cpub = Address.PrivateKeytoECPublicKey(privateKey);
+
 		System.out.println(cpub.getFormat());
+		System.out.println("public key: " + Utils.toHex(Address.privateKeyToPublicKey(Utils.toHex(privateKey), false)));
+		
 		
 		sig.initVerify(cpub);
 		sig.update(s256);
 		System.out.println(sig.getProvider());
 		System.out.println (sig.verify(dsig));
+		
+		//Utils.Utils.varstr(dsig)
+		String scriptSig = Utils.toHex(Utils.toHexB(Utils.varstr(dsig))) + Utils.toHex(Address.privateKeyToPublicKey(Utils.toHex(privateKey), false));
+		System.out.println(scriptSig);
+	    //scriptSig = codecs.encode(utils.varstr(sig),'hex').decode() + codecs.encode(utils.varstr(pubKey),'hex').decode()
+	    	//    signed_txn = makeRawTransaction(outputTransactionHash, sourceIndex, scriptSig, outputs)
+		String signed_txn = makeRawTransaction2(outputTransactionHash, sourceIndex, scriptSig, outputs);
+	    	  //  print('compressed mst:',compressed)
+	    	   // verifyTxnSignature(signed_txn.decode(),compressed=compressed, pubk=pubKey2)
+	    	    return signed_txn;
 
-		return null;
 	}
+
 
 }
