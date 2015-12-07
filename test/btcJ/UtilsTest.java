@@ -24,7 +24,7 @@ public class UtilsTest {
 	}
 	
 	@Test
-	public void varstr() throws IOException{
+	public void varstr() throws IOException, DecoderException{
 		byte [] eba = new byte [] {3,97,98,99};
 		byte [] iba = new byte [] {97,98,99};
 		byte [] oba = Utils.varstr(iba);
@@ -35,6 +35,10 @@ public class UtilsTest {
 		oba = Utils.varstr(strba);
 		assertArrayEquals(eba,oba);
 		
+		str = "3046022100e9044fae15d8ca64fb4f5397b4af15ebc843fbacfd4671bdb09762d19d1b2e67022100d04f170a405b908842e44267ca874bb1fa238b7c8c370db71561e82bb5f9876901";
+		strba = org.apache.commons.codec.binary.Hex.decodeHex(str.toCharArray());
+		oba = Utils.varstr(strba);
+		System.out.println(Utils.toHex(oba));
 		
 	}
 	

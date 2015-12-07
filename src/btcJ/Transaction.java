@@ -144,7 +144,7 @@ public class Transaction {
 
 	public static String [] parseTransaction(String txn) {
 		// TODO Auto-generated method stub
-
+		System.out.println("Parse input txn:" +txn);
 		byte [] outbytes = new byte [2];
 		/*	    first = txn[0:41*2]
 	    	    scriptLen = int(txn[41*2:42*2], 16)
@@ -168,7 +168,9 @@ public class Transaction {
 		String rest = txn.substring(42*2+2*scriptlen);
 
 		String[] parsed = new String[] {first,sig,pub,rest} ;
-
+		System.out.println("Parse first" + first);
+		System.out.println("Parse sig" + sig);
+		System.out.println("Parse pub" + pub);
 		return parsed;
 	}
 
@@ -348,10 +350,13 @@ public class Transaction {
 		}
 
 		String derSig = parsed[1].substring(0, parsed[1].length()-2);
+		System.out.println("derSig:" + derSig + " length:" + derSig.length());
 		byte [] pubKeyBytes = new byte[65];
 		byte[] pkb = new byte [65];
 		byte [] sigBytes = null;
+		
 		try {
+			System.out.println("Parsed2 : " + parsed[2]);
 			pubKeyBytes = org.apache.commons.codec.binary.Hex.decodeHex(parsed[2].substring(0).toCharArray());
 			sigBytes = org.apache.commons.codec.binary.Hex.decodeHex(derSig.toCharArray());
 			//pubKeyBytes = org.apache.commons.codec.binary.Hex.decodeHex(derSig.substring(2).toCharArray());
@@ -455,6 +460,7 @@ public class Transaction {
 
 		//System.out.println("length");
 		sb.append(Integer.toHexString(scriptSig.length()/2));
+		System.out.println("script sig length:"+ Integer.toHexString(scriptSig.length()/2));
 		ba = org.apache.commons.codec.binary.Hex.decodeHex(scriptSig.toCharArray());
 		sb.append(Utils.toHex(ba));
 		sb.append("ffffffff");
@@ -479,6 +485,7 @@ public class Transaction {
 
 
 		sb.append(Integer.toHexString(Utils.toHex(ioPuts.scriptPubKey).length()/2));
+		System.out.println("scriptPubKey Length:"+Integer.toHexString(Utils.toHex(ioPuts.scriptPubKey).length()/2));
 		//ba = org.apache.commons.codec.binary.Hex.decodeHex(outputScript.toCharArray());
 		sb.append(Utils.toHex(ioPuts.scriptPubKey));
 	}
@@ -532,15 +539,23 @@ public class Transaction {
 		sig.update(s256);
 		System.out.println(sig.getProvider());
 		System.out.println (sig.verify(dsig));
+		byte[] dsig2 = new byte [dsig.length+1];
+		
+		byte[] dsig3 = new byte [1];
+		dsig3[0] = 0x01;
+		System.arraycopy(dsig, 0, dsig2, 0, dsig.length);
+		System.arraycopy(dsig3,0,dsig2,dsig2.length-1, 1);
 		
 		//Utils.Utils.varstr(dsig)
-		String scriptSig = Utils.toHex(Utils.toHexB(Utils.varstr(dsig))) + Utils.toHex(Address.privateKeyToPublicKey(Utils.toHex(privateKey), false));
-		System.out.println(scriptSig);
+		//String scriptSig = Utils.toHex(Utils.varstr(dsig)) + Utils.toHex(Address.privateKeyToPublicKey(Utils.toHex(privateKey), false));
+		String scriptSig = Utils.toHex(Utils.varstr(dsig2)) + Utils.toHex(Utils.varstr(Address.privateKeyToPublicKey(Utils.toHex(privateKey), false)));
+		System.out.println("scriptSig:" + scriptSig);
 	    //scriptSig = codecs.encode(utils.varstr(sig),'hex').decode() + codecs.encode(utils.varstr(pubKey),'hex').decode()
 	    	//    signed_txn = makeRawTransaction(outputTransactionHash, sourceIndex, scriptSig, outputs)
 		String signed_txn = makeRawTransaction2(outputTransactionHash, sourceIndex, scriptSig, outputs);
 	    	  //  print('compressed mst:',compressed)
 	    	   // verifyTxnSignature(signed_txn.decode(),compressed=compressed, pubk=pubKey2)
+		System.out.println("myTxn_forSig:" + myTxn_forSig);
 	    	    return signed_txn;
 
 	}
